@@ -50,7 +50,7 @@ def stop():
 
 
 def make_coordinates(image,line_parameters):
-    slope,intercept = np.linspace(line_parameters)
+    slope,intercept = line_parameters
     print(image.shape)
     y1 = image.shape[0] #start height
     y2 = int(y1 *(3/5)) #end height
