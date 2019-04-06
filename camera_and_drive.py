@@ -108,9 +108,10 @@ while(True):
     canny_image = canny(lane_image)
     cropped_image = region_of_interest(canny_image)
     lines = cv2.HoughLinesP(cropped_image,2,np.pi/180,100,np.array([]),minLineLength=40,maxLineGap=5)  #single degree precision
-    averaged_lines = average_slope_intercept(lane_image,lines)
-    line_image = display_lines(lane_image,averaged_lines)
-    combo_image = cv2.addWeighted(lane_image,0.8,line_image,1,1)
+    if (lines is not None):
+        averaged_lines = average_slope_intercept(lane_image,lines)
+        line_image = display_lines(lane_image,averaged_lines)
+        combo_image = cv2.addWeighted(lane_image,0.8,line_image,1,1)
     
     #Our operations on the frame come here
     #gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
@@ -118,7 +119,8 @@ while(True):
     #stop();
     
     #Display the resulting frame
-    cv2.imshow('frame',combo_image)
+    else: 
+        cv2.imshow('frame',combo_image)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
     
