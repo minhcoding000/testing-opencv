@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 
 
 def make_coordinates(image, line_parameters):
+
+    # if lines parameters contain any infinite value
     if (np.isnan(line_parameters).any()):
         return False, False
 
@@ -27,12 +29,16 @@ def average_slope_intercept(image, lines):
             left_fit.append((slope, intercept))
         else:
             right_fit.append((slope, intercept))
+
     left_fit_average = np.average(left_fit, axis=0)
     right_fit_average = np.average(right_fit, axis=0)
     leftDetected, left_line = make_coordinates(image, left_fit_average)
     rightDetected, right_line = make_coordinates(image, right_fit_average)
+
+    # If both left and right are detected
     if (leftDetected and rightDetected):
         return True, np.array([left_line, right_line])
+
     return False, False
 
 
@@ -79,8 +85,5 @@ if (lines is not None):
 
 else:
     cv2.imshow("result", image)
-
-# plt.imshow(canny)  #equivalent of cv2.imshow("result",canny)
-# plt.show() #equivalent of cv2.waitKey(0)
 
 cv2.waitKey(0)

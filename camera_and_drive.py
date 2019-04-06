@@ -50,6 +50,8 @@ def stop():
 
 
 def make_coordinates(image, line_parameters):
+
+    # if lines parameters contain any infinite value
     if (np.isnan(line_parameters).any()):
         return False, False
 
@@ -73,13 +75,19 @@ def average_slope_intercept(image, lines):
             left_fit.append((slope, intercept))
         else:
             right_fit.append((slope, intercept))
+
     left_fit_average = np.average(left_fit, axis=0)
     right_fit_average = np.average(right_fit, axis=0)
     leftDetected, left_line = make_coordinates(image, left_fit_average)
     rightDetected, right_line = make_coordinates(image, right_fit_average)
+
+    # If both left and right are detected
     if (leftDetected and rightDetected):
         return True, np.array([left_line, right_line])
+
     return False, False
+
+
 
 
 def canny(image):
