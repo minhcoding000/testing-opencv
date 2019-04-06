@@ -49,34 +49,38 @@ def stop():
     GPIO.output(a4,GPIO.LOW)
 
 
-def make_coordinates(image,line_parameters):
-    slope,intercept = line_parameters
-    print(image.shape)
-    y1 = image.shape[0] #start height
-    y2 = int(y1 *(3/5)) #end height
+def make_coordinates(image, line_parameters):
+    if (np.isnan(line_parameters).any()):
+        return False, False
+
+    slope, intercept = line_parameters
+    y1 = image.shape[0]  # start height
+    y2 = int(y1 * (3/5))  # end height
     x1 = int((y1 - intercept)/slope)
     x2 = int((y2 - intercept)/slope)
-    return np.array([x1,y1,x2,y2])
+    return True, np.array([x1, y1, x2, y2])
 
-def average_slope_intercept(image,lines):
+
+def average_slope_intercept(image, lines):
     left_fit = []
     right_fit = []
-    if lines is not None:
-        for line in lines:
-                x1, y1, x2, y2 = line.reshape(4)
-                parameters = np.polyfit((x1,x2),(y1,y2),1)
-                slope = parameters[0]
-                intercept = parameters[1]
-                if slope < 0:
-                    left_fit.append((slope,intercept))
-                else:
-                    right_fit.append((slope,intercept))
-    left_fit_average = np.average(left_fit,axis=0)
-    right_fit_average = np.average(right_fit,axis=0)
-    left_line = make_coordinates(image,left_fit_average)
-    right_line = make_coordinates(image,right_fit_average)
-        
-    return np.array([left_line,right_line])
+    for line in lines:
+        x1, y1, x2, y2 = line.reshape(4)
+        parameters = np.polyfit((x1, x2), (y1, y2), 1)
+        slope = parameters[0]
+        intercept = parameters[1]
+        if slope < 0:
+            left_fit.append((slope, intercept))
+        else:
+            right_fit.append((slope, intercept))
+    left_fit_average = np.average(left_fit, axis=0)
+    right_fit_average = np.average(right_fit, axis=0)
+    leftDetected, left_line = make_coordinates(image, left_fit_average)
+    rightDetected, right_line = make_coordinates(image, right_fit_average)
+    if (leftDetected and rightDetected):
+        return True, np.array([left_line, right_line])
+    return False, False
+
 
 def canny(image):
     gray = cv2.cvtColor(image,cv2.COLOR_RGB2GRAY)
@@ -109,18 +113,16 @@ while(True):
     cropped_image = region_of_interest(canny_image)
     lines = cv2.HoughLinesP(cropped_image,2,np.pi/180,100,np.array([]),minLineLength=40,maxLineGap=5)  #single degree precision
     if (lines is not None):
-        averaged_lines = average_slope_intercept(lane_image,lines)
-        line_image = display_lines(lane_image,averaged_lines)
-        combo_image = cv2.addWeighted(lane_image,0.8,line_image,1,1)
-    
-    #Our operations on the frame come here
-    #gray = cv2.cvtColor(frame,cv2.COLOR_RGB2GRAY)
-    #forward(250);
-    #stop();
-    
-    #Display the resulting frame
-    else: 
-        cv2.imshow('frame',combo_image)
+        getLine, averaged_lines = average_slope_intercept(lane_image, lines)
+        if (getLine):
+            line_image = display_lines(lane_image, averaged_lines)
+            combo_image = cv2.addWeighted(lane_image, 0.8, line_image, 1, 1)
+            cv2.imshow("result", combo_image)
+        else:
+            cv2.imshow("result", frame)
+    else:
+        cv2.imshow("result", frame)
+
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
     
